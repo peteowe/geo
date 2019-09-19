@@ -1,0 +1,55 @@
+ <!doctype html>
+<html>
+   <head>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+   </head>
+   <body>
+      <form action=""id="form">
+        <label for="lat"><b>Lat</b></label>
+        <input type="text" placeholder="Enter Latitude" name="lat" value="{{lat}}"required>
+        <label for="lon"><b>Lon</b></label>
+        <input type="text" placeholder="Enter Longitude" name="lon" value="{{lon}}"required>
+        <label for="radius"><b>Radius (Km)</b></label>
+        <input type="text" placeholder="Enter Radius" name="radius" value="{{radius}}"required>
+        <button type="submit">Submit</button>
+      </form>
+      {% if data is not none %}
+          <canvas id="myChart" width="20" height="20"></canvas>
+          <table>
+            <tr>
+              <th>Top 20 Street Names Found</th>
+            </tr>
+          {% for i in data['streets']['roadNames'] %}
+            <tr>
+              <td>{{ i['key']}}</td>
+            </tr>
+          {% endfor %}
+       {% else %}
+         <h1>Please enter coordinates to view stats!</h1>
+      {% endif %}
+
+      <script type="text/javascript">
+
+	var ctx = document.getElementById("myChart").getContext('2d');
+	ctx.canvas.width = 200;
+	ctx.canvas.height = 50;
+	var jdata = {{ data|tojson }};
+	var dataValues = jdata['types']['values'];
+	var dataLabels = jdata['types']['lables'];
+        
+	new Chart(ctx, {
+	    type: 'bar',
+	    data: {
+	      labels: dataLabels,
+	      datasets: [
+		{
+		  label: "Street Type Count",
+		  backgroundColor: "#3e95cd",
+		  data: dataValues
+		}
+	      ]
+	    }
+	});
+      </script>
+   </body>
+</html>

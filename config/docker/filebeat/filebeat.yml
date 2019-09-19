@@ -1,0 +1,11 @@
+# filebeat.yml
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/www/logs/*.log
+      input_type: log
+output:
+  logstash:
+    hosts: ["geologstash:5000"]
+    bulk_max_size: 1024

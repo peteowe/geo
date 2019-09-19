@@ -1,0 +1,70 @@
+version: "3.3"
+networks:
+  default:
+    driver: bridge
+  elk:
+    driver: bridge
+
+services:
+  engine:
+    build: ./config/docker/engine
+    container_name: python_engine
+    tty: true
+    ports:
+      - "5000:5000"
+    volumes:
+      - ".:/var/www:rw"
+    environment:
+      - FLASK_APP=Main.py
+      - LC_ALL=C.UTF-8
+      - LANG=C.UTF-8
+    command: >
+      bash -c
+        "python -m flask run --host=0.0.0.0"
+    working_dir: "/var/www"
+    networks:
+      - default
+
+  cache:
+    image: redis:5.0.5
+    container_name: cache
+    ports: 
+      - "6379:6379"
+    networks:
+      - default
+
+  geoelasticsearch:
+    build: ./config/docker/elasticsearch
+    container_name: geoelasticsearch
+    ports:
+      - "9200"
+      - "9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - default
+      - elk
+
+  geologstash:
+    build: ./config/docker/logstash
+    container_name: geologstash
+    ports:
+      - "5000"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - default
+      - elk
+    depends_on:
+      - geoelasticsearch
+
+  geofilebeat:
+    build: ./config/docker/filebeat
+    container_name: geofilebeat
+    volumes:
+      - ".:/var/www:ro"
+    networks:
+      - default
+      - elk
+    depends_on:
+      - geologstash
